@@ -16,10 +16,10 @@ func (e *ResolveError) Error() string {
 	return fmt.Sprintf("%s (for key=%s)", e.what, e.key)
 }
 
-func Resolve(in string, r Resolver) (string, error) {
+func ResolveFromString(in string, r Resolver) (string, error) {
 	//fmt.Printf("resolv: in=%s\n", in)
 
-	t := NewTokenizer(in)
+	t := NewTokenizerFromString(in)
 	tokens, err := t.Tokenize()
 	if err != nil {
 		return "", err
@@ -33,11 +33,11 @@ func Resolve(in string, r Resolver) (string, error) {
 			res = fmt.Sprintf("%s%s", res, token.part)
 		}
 		if token.tkType == typeParamPart {
-			x := token.part
+			x := string(token.part)
 			if token.withNestedParam {
 				// recurse into resolving the whole thing in
 				// case of nested params
-				x, err = Resolve(token.part, r)
+				x, err = ResolveFromString(string(token.part), r)
 				if err != nil {
 					return "", err
 				}

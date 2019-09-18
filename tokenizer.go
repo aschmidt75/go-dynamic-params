@@ -18,7 +18,7 @@ const (
 	typeParamPart
 )
 
-// TokenizeError is
+// TokenizeError tells details about an error while tokenzing input
 type TokenizeError struct {
 	what  string
 	pos   int
@@ -31,20 +31,30 @@ func (e *TokenizeError) Error() string {
 
 // Token is a single Token split by the tokenizer
 type Token struct {
-	part            string
+	part            []byte
 	tkType          tokenType
 	withNestedParam bool
 }
 
-// Tokenizer is a
+// Tokenizer wraps the input
 type Tokenizer struct {
-	// TODO: bytes..
-	in string
+	in []byte
 }
 
-// NewTokenizer creates a new tokenizer
-func NewTokenizer(inputString string) *Tokenizer {
-	return &Tokenizer{in: inputString}
+// NewTokenizer creates a new tokenizer from byte slice
+func NewTokenizer(input []byte) *Tokenizer {
+	return &Tokenizer{in: input}
+}
+
+// NewTokenizerFromString creates a new tokenizer from string input
+func NewTokenizerFromString(inputString string) *Tokenizer {
+	return &Tokenizer{in: []byte(inputString)}
+}
+
+func (t *Tokenizer) newToken(tt tokenType) *Token {
+	r := &Token{tkType: tt}
+	r.part = make([]byte, 0, len(t.in))
+	return r
 }
 
 // Tokenize splits the given input string into tokens
@@ -55,7 +65,7 @@ func (t *Tokenizer) Tokenize() ([]*Token, error) {
 	l := len(t.in)
 	i := 0
 	mode := modeNorm
-	curToken := &Token{tkType: typeStaticPart}
+	curToken := t.newToken(typeStaticPart)
 	bracketCounter := 0
 
 	for {
@@ -87,7 +97,7 @@ func (t *Tokenizer) Tokenize() ([]*Token, error) {
 				if len(curToken.part) > 0 {
 					res = append(res, curToken)
 				}
-				curToken = &Token{tkType: typeParamPart}
+				curToken = t.newToken(typeParamPart)
 
 				mode = modeInParam
 				skip1 = true
@@ -107,7 +117,7 @@ func (t *Tokenizer) Tokenize() ([]*Token, error) {
 					} else {
 						return res, &TokenizeError{what: "empty params not allowed", pos: i, token: curToken}
 					}
-					curToken = &Token{tkType: typeStaticPart}
+					curToken = t.newToken(typeStaticPart)
 
 					mode = modeNorm
 					skip1 = true
@@ -117,7 +127,7 @@ func (t *Tokenizer) Tokenize() ([]*Token, error) {
 		}
 
 		if skip1 == false {
-			curToken.part = fmt.Sprintf("%s%c", curToken.part, t.in[i])
+			curToken.part = append(curToken.part, t.in[i])
 		}
 
 		//fmt.Printf("%d (%c) mode=%d bc=%d curTokenPart=%s\n", i, t.in[i], mode, bracketCounter, curToken.part)
@@ -131,4 +141,3 @@ func (t *Tokenizer) Tokenize() ([]*Token, error) {
 
 	return res, err
 }
-

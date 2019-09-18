@@ -7,7 +7,7 @@ type Resolver interface {
 	Resolve(key string) (string, error)
 }
 
-// ResolverChain ...
+// ResolverChain contains multiple resolvers
 type ResolverChain []Resolver
 
 // ResolveError has details about resolve errors

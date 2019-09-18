@@ -2,11 +2,15 @@ package main
 
 import "fmt"
 
+// Resolver is able to get a value for a given key
 type Resolver interface {
 	Resolve(key string) (string, error)
 }
 
-// ResolveError is
+// ResolverChain ...
+type ResolverChain []Resolver
+
+// ResolveError has details about resolve errors
 type ResolveError struct {
 	what string
 	key  string
@@ -16,7 +20,9 @@ func (e *ResolveError) Error() string {
 	return fmt.Sprintf("%s (for key=%s)", e.what, e.key)
 }
 
-func ResolveFromString(in string, r Resolver) (string, error) {
+// ResolveFromString takes a string and a resolver, and resolves
+// all parameter references using the given resolver
+func ResolveFromString(in string, resolvers ResolverChain) (string, error) {
 	//fmt.Printf("resolv: in=%s\n", in)
 
 	t := NewTokenizerFromString(in)
@@ -37,16 +43,27 @@ func ResolveFromString(in string, r Resolver) (string, error) {
 			if token.withNestedParam {
 				// recurse into resolving the whole thing in
 				// case of nested params
-				x, err = ResolveFromString(string(token.part), r)
+				x, err = ResolveFromString(string(token.part), resolvers)
 				if err != nil {
 					return "", err
 				}
 			}
-			y, err := r.Resolve(x)
-			if err != nil {
-				return "", err
+
+			resolveOk := false
+			y := ""
+			for _, resolver := range resolvers {
+				y, err = resolver.Resolve(x)
+				if err == nil {
+					resolveOk = true
+					break
+				}
 			}
-			res = fmt.Sprintf("%s%s", res, y)
+
+			if resolveOk {
+				res = fmt.Sprintf("%s%s", res, y)
+			} else {
+				return "", &ResolveError{what: "unable to look up parameter", key: x}
+			}
 
 		}
 	}

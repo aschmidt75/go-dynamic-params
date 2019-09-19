@@ -13,6 +13,36 @@ type YAMLResolver struct {
 	origin string
 }
 
+func transformToKeysAsStrings(f interface{}, m *map[string]interface{}) error {
+	for k, v := range f.(map[interface{}]interface{}) {
+		switch kk := k.(type) {
+		case string:
+			switch v.(type) {
+			case string:
+				(*m)[kk] = v
+			case float64:
+				(*m)[kk] = v
+			case bool:
+				(*m)[kk] = v
+			case []interface{}:
+				(*m)[kk] = v
+			case map[interface{}]interface{}:
+				vv2 := make(map[string]interface{})
+				err := transformToKeysAsStrings(v, &vv2)
+				if err != nil {
+					return err
+				}
+				(*m)[kk] = vv2
+			default:
+				(*m)[kk] = v
+			}
+		default:
+			return errors.New("Keys need to be strings")
+		}
+	}
+	return nil
+}
+
 // NewYAMLResolverFromString creates a new YAMLResolver from
 // a given input string
 func NewYAMLResolverFromString(yamlIn string) (YAMLResolver, error) {
@@ -28,13 +58,9 @@ func NewYAMLResolverFromString(yamlIn string) (YAMLResolver, error) {
 	// f is map[interface{}]interface{} but needs to be map[string]interface{}
 	// transform, otherwise flatten won't work.
 	m := make(map[string]interface{})
-	for k, v := range f.(map[interface{}]interface{}) {
-		switch kk := k.(type) {
-		case string:
-			m[kk] = v
-		default:
-			return res, errors.New("Keys need to be strings")
-		}
+	err = transformToKeysAsStrings(f, &m)
+	if err != nil {
+		return res, err
 	}
 
 	res.flat = Flatten(m)

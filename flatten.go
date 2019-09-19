@@ -28,6 +28,8 @@ func flattenStruct(prefix string, res *map[string]string, m map[string]interface
 			flattenList(fmt.Sprintf("%s%s.", prefix, k), res, vv)
 		case map[string]interface{}:
 			flattenStruct(fmt.Sprintf("%s%s.", prefix, k), res, vv)
+		default:
+			(*res)[compoundKey] = fmt.Sprintf("%v", vv)
 		}
 	}
 }
@@ -46,6 +48,8 @@ func flattenList(prefix string, res *map[string]string, m []interface{}) {
 			flattenList(compoundKey, res, vv)
 		case map[string]interface{}:
 			flattenStruct(fmt.Sprintf("%s.", compoundKey), res, vv)
+		default:
+			(*res)[compoundKey] = fmt.Sprintf("%v", vv)
 		}
 	}
 }

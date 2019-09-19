@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 
 	"gopkg.in/yaml.v2"
 )
@@ -16,7 +16,6 @@ type YAMLResolver struct {
 // NewYAMLResolverFromString creates a new YAMLResolver from
 // a given input string
 func NewYAMLResolverFromString(yamlIn string) (YAMLResolver, error) {
-	fmt.Printf("in: %#v\n", yamlIn)
 
 	res := YAMLResolver{yamlIn: []byte(yamlIn)}
 	var f interface{}
@@ -25,12 +24,18 @@ func NewYAMLResolverFromString(yamlIn string) (YAMLResolver, error) {
 	if err != nil {
 		return res, err
 	}
-	fmt.Printf("%#v\n", f)
 
-	// TODO: find out at runtime if this cast will work out
-	m := f.(map[string]interface{})
-
-	fmt.Printf("%#v\n", m)
+	// f is map[interface{}]interface{} but needs to be map[string]interface{}
+	// transform, otherwise flatten won't work.
+	m := make(map[string]interface{})
+	for k, v := range f.(map[interface{}]interface{}) {
+		switch kk := k.(type) {
+		case string:
+			m[kk] = v
+		default:
+			return res, errors.New("Keys need to be strings")
+		}
+	}
 
 	res.flat = Flatten(m)
 

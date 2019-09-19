@@ -8,7 +8,9 @@ import (
 // and returns a map of strings. All entries are in the top, levels separated by '.'
 func Flatten(m map[string]interface{}) map[string]string {
 	res := make(map[string]string)
-	flattenStruct("", &res, m)
+	if m != nil {
+		flattenStruct("", &res, m)
+	}
 	return res
 }
 

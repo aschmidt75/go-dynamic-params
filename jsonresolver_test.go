@@ -7,22 +7,22 @@ import (
 )
 
 func TestJSONResolverBasics(t *testing.T) {
-	Convey("empty input should result in error", t, func() {
+	Convey("empty input should result in error", t, func(c C) {
 		var err error
 		var r JSONResolver
 
 		_, err = NewJSONResolverFromString("")
 
-		So(err, ShouldNotBeNil)
+		c.So(err, ShouldNotBeNil)
 
 		r, err = NewJSONResolverFromString("{}")
 		_, err = r.Resolve("no.such.value")
 
-		So(err, ShouldNotBeNil)
+		c.So(err, ShouldNotBeNil)
 
 	})
 
-	Convey("basic values should be resolved correctly", t, func() {
+	Convey("basic values should be resolved correctly", t, func(c C) {
 		var err error
 		var r JSONResolver
 		var v string
@@ -34,26 +34,26 @@ func TestJSONResolverBasics(t *testing.T) {
 		"bool": true
 		}
 		`)
-		So(err, ShouldBeNil)
+		c.So(err, ShouldBeNil)
 
 		v, err = r.Resolve("string")
 
-		So(err, ShouldBeNil)
-		So(v, ShouldEqual, "123")
+		c.So(err, ShouldBeNil)
+		c.So(v, ShouldEqual, "123")
 
 		v, err = r.Resolve("int")
 
-		So(err, ShouldBeNil)
-		So(v, ShouldEqual, "1")
+		c.So(err, ShouldBeNil)
+		c.So(v, ShouldEqual, "1")
 
 		v, err = r.Resolve("float")
 
-		So(err, ShouldBeNil)
-		So(v, ShouldEqual, "3.75")
+		c.So(err, ShouldBeNil)
+		c.So(v, ShouldEqual, "3.75")
 
 		v, err = r.Resolve("bool")
 
-		So(err, ShouldBeNil)
-		So(v, ShouldEqual, "true")
+		c.So(err, ShouldBeNil)
+		c.So(v, ShouldEqual, "true")
 	})
 }

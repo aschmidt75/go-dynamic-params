@@ -17,14 +17,14 @@ func FlattenFromJSON(jsonIn string) map[string]string {
 }
 
 func TestFlattening(t *testing.T) {
-	Convey("empty input should result in empty map", t, func() {
+	Convey("empty input should result in empty map", t, func(c C) {
 		em := make(map[string]interface{})
 		r := Flatten(em)
 
-		So(len(r), ShouldEqual, 0)
+		c.So(len(r), ShouldEqual, 0)
 	})
 
-	Convey("basic types should be handled correctly", t, func() {
+	Convey("basic types should be handled correctly", t, func(c C) {
 		r := FlattenFromJSON(`
 { "string": "123",
 "int": 1,
@@ -33,14 +33,14 @@ func TestFlattening(t *testing.T) {
 }
 		`)
 
-		So(len(r), ShouldEqual, 4)
-		So(r["string"], ShouldEqual, "123")
-		So(r["int"], ShouldEqual, "1")
-		So(r["float"], ShouldEqual, "3.75")
-		So(r["bool"], ShouldEqual, "true")
+		c.So(len(r), ShouldEqual, 4)
+		c.So(r["string"], ShouldEqual, "123")
+		c.So(r["int"], ShouldEqual, "1")
+		c.So(r["float"], ShouldEqual, "3.75")
+		c.So(r["bool"], ShouldEqual, "true")
 	})
 
-	Convey("list numbering should be handled correctly", t, func() {
+	Convey("list numbering should be handled correctly", t, func(c C) {
 		r := FlattenFromJSON(`
 { "list": [
 	"first",
@@ -51,11 +51,11 @@ func TestFlattening(t *testing.T) {
 }
 		`)
 
-		So(len(r), ShouldEqual, 4)
-		So(r["list.0"], ShouldEqual, "first")
-		So(r["list.1"], ShouldEqual, "2nd")
-		So(r["list.2"], ShouldEqual, "3")
-		So(r["list.3"], ShouldEqual, "4.3874")
+		c.So(len(r), ShouldEqual, 4)
+		c.So(r["list.0"], ShouldEqual, "first")
+		c.So(r["list.1"], ShouldEqual, "2nd")
+		c.So(r["list.2"], ShouldEqual, "3")
+		c.So(r["list.3"], ShouldEqual, "4.3874")
 
 		r = FlattenFromJSON(`
 		{ "list": [
@@ -63,11 +63,11 @@ func TestFlattening(t *testing.T) {
 		}
 		`)
 
-		So(len(r), ShouldEqual, 0)
+		c.So(len(r), ShouldEqual, 0)
 
 	})
 
-	Convey("nested maps should be handled correctly", t, func() {
+	Convey("nested maps should be handled correctly", t, func(c C) {
 		r := FlattenFromJSON(`
 {   
 	"level1": {
@@ -86,22 +86,22 @@ func TestFlattening(t *testing.T) {
 }
 		`)
 
-		So(len(r), ShouldEqual, 4)
-		So(r["level1.a"], ShouldEqual, "others")
-		So(r["level1.level2.level3.a"], ShouldEqual, "1")
-		So(r["level1.level2.here"], ShouldEqual, "too")
-		So(r["level1.level2.level3.b"], ShouldEqual, "false")
+		c.So(len(r), ShouldEqual, 4)
+		c.So(r["level1.a"], ShouldEqual, "others")
+		c.So(r["level1.level2.level3.a"], ShouldEqual, "1")
+		c.So(r["level1.level2.here"], ShouldEqual, "too")
+		c.So(r["level1.level2.level3.b"], ShouldEqual, "false")
 
 		r = FlattenFromJSON(`
 		{ "empty_map": {}
 		}
 		`)
 
-		So(len(r), ShouldEqual, 0)
+		c.So(len(r), ShouldEqual, 0)
 
 	})
 
-	Convey("mixed example should be handled correctly", t, func() {
+	Convey("mixed example should be handled correctly", t, func(c C) {
 		r := FlattenFromJSON(`
 {   
 	"level1": {
@@ -120,19 +120,19 @@ func TestFlattening(t *testing.T) {
 }
 		`)
 
-		So(len(r), ShouldEqual, 5)
-		So(r["level1.a"], ShouldEqual, "others")
-		So(r["level1.level2.here"], ShouldEqual, "too")
-		So(r["level1.level2.level3.0"], ShouldEqual, "a")
-		So(r["level1.level2.level3.1"], ShouldEqual, "false")
-		So(r["level1.level2.level3.2.other"], ShouldEqual, "one")
+		c.So(len(r), ShouldEqual, 5)
+		c.So(r["level1.a"], ShouldEqual, "others")
+		c.So(r["level1.level2.here"], ShouldEqual, "too")
+		c.So(r["level1.level2.level3.0"], ShouldEqual, "a")
+		c.So(r["level1.level2.level3.1"], ShouldEqual, "false")
+		c.So(r["level1.level2.level3.2.other"], ShouldEqual, "one")
 
 		r = FlattenFromJSON(`
 		{ "empty_map": {}
 		}
 		`)
 
-		So(len(r), ShouldEqual, 0)
+		c.So(len(r), ShouldEqual, 0)
 
 	})
 }

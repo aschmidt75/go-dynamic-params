@@ -7,46 +7,46 @@ import (
 )
 
 func TestResolverValidInputs(t *testing.T) {
-	Convey("Non-param strings should be resolved", t, func() {
+	Convey("Non-param strings should be resolved", t, func(c C) {
 		res, err := ResolveFromString("", ResolverChain{})
-	
-		So(err, ShouldBeNil)
-		So(res, ShouldEqual, "")
+
+		c.So(err, ShouldBeNil)
+		c.So(res, ShouldEqual, "")
 
 		res, err = ResolveFromString("", ResolverChain{NewMapResolver()})
-	
-		So(err, ShouldBeNil)
-		So(res, ShouldEqual, "")
+
+		c.So(err, ShouldBeNil)
+		c.So(res, ShouldEqual, "")
 
 		res, err = ResolveFromString("no.params.here", ResolverChain{NewMapResolver()})
-	
-		So(err, ShouldBeNil)
-		So(res, ShouldEqual, "no.params.here")
+
+		c.So(err, ShouldBeNil)
+		c.So(res, ShouldEqual, "no.params.here")
 	})
 
-	Convey("Sample resolve testcases", t, func() {
+	Convey("Sample resolve testcases", t, func(c C) {
 		res, err := ResolveFromString("key=${value}", ResolverChain{NewMapResolver().With(map[string]string{
-			"value":    "123",
+			"value": "123",
 		})})
-	
-		So(err, ShouldBeNil)
-		So(res, ShouldEqual, "key=123")
+
+		c.So(err, ShouldBeNil)
+		c.So(res, ShouldEqual, "key=123")
 
 		res, err = ResolveFromString("key=${${value}}", ResolverChain{NewMapResolver().With(map[string]string{
-			"value":    "another.value",
+			"value":         "another.value",
 			"another.value": "123",
 		})})
-	
-		So(err, ShouldBeNil)
-		So(res, ShouldEqual, "key=123")
+
+		c.So(err, ShouldBeNil)
+		c.So(res, ShouldEqual, "key=123")
 
 		res, err = ResolveFromString("${_key}=${_value}", ResolverChain{NewMapResolver().With(map[string]string{
-			"_value":    "another.value",
-			"_key": "another.key",
+			"_value": "another.value",
+			"_key":   "another.key",
 		})})
-	
-		So(err, ShouldBeNil)
-		So(res, ShouldEqual, "another.key=another.value")
+
+		c.So(err, ShouldBeNil)
+		c.So(res, ShouldEqual, "another.key=another.value")
 
 		multilineTemplate := `
 test:
@@ -59,51 +59,51 @@ test:
 		other-key: other-value
 		`
 		res, err = ResolveFromString(multilineTemplate, ResolverChain{NewMapResolver().With(map[string]string{
-			"value":    "123",
+			"value": "123",
 		})})
-	
-		So(err, ShouldBeNil)
-		So(res, ShouldEqual, multilineResult)
+
+		c.So(err, ShouldBeNil)
+		c.So(res, ShouldEqual, multilineResult)
 
 	})
 
 }
 
 func TestResolverInvalidInputs(t *testing.T) {
-	Convey("Resolve with empty keys should return errors", t, func() {
+	Convey("Resolve with empty keys should return errors", t, func(c C) {
 		_, err := ResolveFromString("key=${}", ResolverChain{NewMapResolver().With(map[string]string{
-			"another.value":    "123",
+			"another.value": "123",
 		})})
-	
-		So(err, ShouldNotBeNil)
+
+		c.So(err, ShouldNotBeNil)
 
 		_, err = ResolveFromString("key=${${value}}", ResolverChain{NewMapResolver().With(map[string]string{
-			"value":    "",
+			"value": "",
 		})})
-	
-		So(err, ShouldNotBeNil)
+
+		c.So(err, ShouldNotBeNil)
 	})
 
-	Convey("Resolve with nonexisting keys should return errors", t, func() {
+	Convey("Resolve with nonexisting keys should return errors", t, func(c C) {
 		_, err := ResolveFromString("key=${no.such.value}", ResolverChain{NewMapResolver().With(map[string]string{
-			"another.value":    "123",
+			"another.value": "123",
 		})})
-	
-		So(err, ShouldNotBeNil)
+
+		c.So(err, ShouldNotBeNil)
 	})
 
-	Convey("Resolve with empty resolver chain should return errors", t, func() {
+	Convey("Resolve with empty resolver chain should return errors", t, func(c C) {
 		_, err := ResolveFromString("key=${no.resolvers.in.chain}", ResolverChain{})
-	
-		So(err, ShouldNotBeNil)
+
+		c.So(err, ShouldNotBeNil)
 	})
 }
 
 func TestResolverValidInputsWithChains(t *testing.T) {
-	Convey("Resolve should pick distinct parameters from the whole chain correctly", t, func() {
+	Convey("Resolve should pick distinct parameters from the whole chain correctly", t, func(c C) {
 		rc := ResolverChain{
 			NewMapResolver().With(map[string]string{
-				"_value":    "another.value",
+				"_value": "another.value",
 			}),
 			NewMapResolver().With(map[string]string{
 				"_key": "another.key",
@@ -111,23 +111,23 @@ func TestResolverValidInputsWithChains(t *testing.T) {
 		}
 		res, err := ResolveFromString("${_key}=${_value}", rc)
 
-		So(err, ShouldBeNil)
-		So(res, ShouldEqual, "another.key=another.value")
+		c.So(err, ShouldBeNil)
+		c.So(res, ShouldEqual, "another.key=another.value")
 	})
 
-	Convey("Resolve should pick identical parameters from the whole chain correctly", t, func() {
+	Convey("Resolve should pick identical parameters from the whole chain correctly", t, func(c C) {
 		rc := ResolverChain{
 			NewMapResolver().With(map[string]string{
-				"_value":    "another.value",
+				"_value": "another.value",
 			}),
 			NewMapResolver().With(map[string]string{
-				"_value":    "another.value.but.hidden.because.first.chainelement.already.has.it",
-				"_key": "another.key",
+				"_value": "another.value.but.hidden.because.first.chainelement.already.has.it",
+				"_key":   "another.key",
 			}),
 		}
 		res, err := ResolveFromString("${_key}=${_value}", rc)
 
-		So(err, ShouldBeNil)
-		So(res, ShouldEqual, "another.key=another.value")
+		c.So(err, ShouldBeNil)
+		c.So(res, ShouldEqual, "another.key=another.value")
 	})
 }

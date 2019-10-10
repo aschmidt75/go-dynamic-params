@@ -1,4 +1,4 @@
-package main
+package dynp
 
 import (
 	"encoding/json"

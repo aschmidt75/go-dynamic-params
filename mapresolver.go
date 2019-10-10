@@ -1,4 +1,4 @@
-package main
+package dynp
 
 type MapResolver struct {
 	m map[string]string

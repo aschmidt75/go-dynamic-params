@@ -13,3 +13,5 @@
 
 vendor/
 sample*
+.vscode/
+c.out
